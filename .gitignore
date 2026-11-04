@@ -1,0 +1,19 @@
+# Salidas de build
+android/build/
+android/assets/
+android/Charcuteria.apk
+android/*.jks
+
+# Pruebas y perfiles locales
+.edge-*/
+.qa/
+node_modules/
+*.log
+dump.html
+medir.html
+ui.xml
+pantalla.png
+
+# Sistema
+Thumbs.db
+.DS_Store
