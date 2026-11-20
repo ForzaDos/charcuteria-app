@@ -28,7 +28,7 @@ La charcutería casera es precisa: medio gramo de sal de cura de más o de menos
 - **Lleva el stock** de carnes, tripas, aditivos, sales de cura y especias, con precios, para saber qué te falta y cuánto te sale cada lote.
 - **Imprime la receta** en una hoja prolija, con ingredientes, pasos y advertencias.
 
-No necesita internet, no pide cuenta ni registro y no manda tus datos a ningún lado: todo queda guardado en tu teléfono.
+No necesita internet, no pide cuenta ni registro y no manda tus datos a ningún lado: todo queda guardado en tu teléfono. Está en **castellano, inglés y alemán** (selector ES / EN / DE arriba a la derecha).
 
 ## Qué tiene
 

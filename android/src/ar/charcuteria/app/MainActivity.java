@@ -49,6 +49,13 @@ public class MainActivity extends Activity {
     private FrameLayout root;
     private String textoPendiente;
     private ClipboardManager portapapeles;
+    // Idioma elegido en la app (lo avisa la página al iniciar); si no, el del teléfono.
+    private volatile String idiomaApp = "";
+
+    private String tr(String es, String en, String de) {
+        String l = idiomaApp.length() > 0 ? idiomaApp : java.util.Locale.getDefault().getLanguage();
+        return "de".equals(l) ? de : ("en".equals(l) ? en : es);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,6 +92,11 @@ public class MainActivity extends Activity {
     }
 
     private class PrintBridge {
+        @JavascriptInterface
+        public void idioma(String codigo) {
+            idiomaApp = codigo == null ? "" : codigo;
+        }
+
         @JavascriptInterface
         public void imprimir(final String html, final String jobName) {
             runOnUiThread(new Runnable() {
@@ -176,7 +188,7 @@ public class MainActivity extends Activity {
                     try {
                         startActivityForResult(intent, REQ_ABRIR);
                     } catch (Exception e) {
-                        Toast.makeText(MainActivity.this, "No hay selector de archivos", Toast.LENGTH_LONG).show();
+                        Toast.makeText(MainActivity.this, tr("No hay selector de archivos", "No file picker available", "Keine Dateiauswahl verfügbar"), Toast.LENGTH_LONG).show();
                     }
                 }
             });
@@ -210,7 +222,7 @@ public class MainActivity extends Activity {
                 String texto = new String(buf.toByteArray(), StandardCharsets.UTF_8);
                 avisarJs("window.__charcuteriaArchivoAbierto && window.__charcuteriaArchivoAbierto(" + JSONObject.quote(texto) + ")");
             } catch (Exception e) {
-                Toast.makeText(this, "No se pudo leer el archivo", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, tr("No se pudo leer el archivo", "Could not read the file", "Datei konnte nicht gelesen werden"), Toast.LENGTH_LONG).show();
             }
         }
     }
@@ -314,7 +326,7 @@ public class MainActivity extends Activity {
                     public void run() {
                         PrintManager pm = (PrintManager) getSystemService(Context.PRINT_SERVICE);
                         if (pm == null) {
-                            Toast.makeText(MainActivity.this, "No hay servicio de impresión", Toast.LENGTH_LONG).show();
+                            Toast.makeText(MainActivity.this, tr("No hay servicio de impresión", "No print service available", "Kein Druckdienst verfügbar"), Toast.LENGTH_LONG).show();
                             return;
                         }
                         PrintAttributes attrs = new PrintAttributes.Builder()

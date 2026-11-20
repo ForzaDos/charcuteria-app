@@ -19,7 +19,7 @@ const EXPORTA = [
   'deshacerElaboracion', 'terminarLote', 'cancelarLote', 'borrarLote', 'permisos', 'setVista',
   'recalcular', 'datosParaRespaldo', 'importarRespaldoTexto', 'csvMovimientos', 'csvLotes',
   'guardarModalReceta', 'abrirModalReceta', 'editarReceta', 'guardarEditorReceta', 'recetaPorId',
-  'ejecutarMov', 'existenciaItem', 'grupoStock', 'categoriaStockPara', 'pasaFiltroStock', 'necesidadesPorItem', 'faltantesLote', 'cambiarGrupo', 'cambiarTipoTripa', 'grupoItem', 'itemsParaEnvoltura', 'curaPorDefecto', 'renderGrupoCura', 'borrarTodosLosMovimientos', 'borrarTodoElStock', 'totalesStock', 'fijarProvisorio', 'fijarVinculo', 'elegirTripa', 'cambiarEnvoltura', 'calibreDeNombre', 'tripaDe', 'costoEnvolturasDe', 'estadoDeData', 'necesidadesDeData', 'datosReceta', 'limpiarDataReceta', 'lineasCosto', 'actualizarPreciosStock', 'ajustarComponente', 'normalizarTodosComponentes', 'construirDocImpresion', 'fichaRecetaDoc', 'abrirImpresion', 'fmt', 'kgParaIngrediente', 'escalarLote'
+  'ejecutarMov', 'existenciaItem', 'grupoStock', 'categoriaStockPara', 'pasaFiltroStock', 'necesidadesPorItem', 'faltantesLote', 'cambiarGrupo', 'cambiarTipoTripa', 'grupoItem', 'itemsParaEnvoltura', 'curaPorDefecto', 'renderGrupoCura', 'borrarTodosLosMovimientos', 'borrarTodoElStock', 'totalesStock', 'fijarProvisorio', 'fijarVinculo', 'elegirTripa', 'cambiarEnvoltura', 'calibreDeNombre', 'tripaDe', 'costoEnvolturasDe', 'estadoDeData', 'necesidadesDeData', 'datosReceta', 'limpiarDataReceta', 'lineasCosto', 'actualizarPreciosStock', 'ajustarComponente', 'normalizarTodosComponentes', 'construirDocImpresion', 'fichaRecetaDoc', 'abrirImpresion', 'fmt', 'kgParaIngrediente', 'escalarLote', 'I18N', 'tx', 'cambiarIdioma', 'IDIOMA', 'traducirHTML'
 ];
 const fin = /\n\s*init\(\);\s*\r?\n\}\)\(\);\s*$/;
 const coincidencias = scripts[0][1].match(new RegExp(fin.source, 'g')) || [];
@@ -809,6 +809,51 @@ console.log('\n== Grupos del stock ==');
   ok(sin.alertas.some((a) => a.tone === 'bad' && /botulismo/.test(a.texto)), 'quitar la cura de un fermentado sigue dando la alerta roja');
   const mal = T.compute(T.estadoDeData(Object.assign({}, T.RECETAS.salame, { curaTipo: 'cura1' })));
   ok(mal.alertas.some((a) => a.tone === 'bad' && /botulismo/.test(a.texto)), 'cambiar a cura #1 en un fermentado también');
+}
+
+// ================= idiomas =================
+console.log('\n== Idiomas ==');
+{
+  const LS_IDIOMA = 'charcuteriaIdioma.v1';
+  const { T } = cargarApp();
+  ok(T.IDIOMA === 'es' && T.tx('Lotes') === 'Lotes', 'sin elegir, la app queda en castellano');
+  ok(T.tx('Hace {d} días que no respaldás tus datos.', { d: 9 }) === 'Hace 9 días que no respaldás tus datos.', 'tx completa las variables');
+  // Cada texto marcado con tx('…') tiene traducción en inglés y alemán, con las mismas variables.
+  const des = (s) => s.replace(/\\'/g, "'").replace(/\\n/g, '\n').replace(/\\\\/g, '\\');
+  const codigo = scripts[0][1];
+  const marcados = [...new Set([...codigo.matchAll(/\btx\('((?:[^'\\]|\\.)*)'/g)].map((m) => des(m[1])))];
+  const vars = (s) => (s.match(/\{\w+\}/g) || []).sort().join(',');
+  for (const idioma of ['en', 'de']) {
+    const d = T.I18N[idioma];
+    const faltan = marcados.filter((k) => !Object.prototype.hasOwnProperty.call(d, k));
+    ok(!faltan.length, idioma + ': todos los textos marcados (' + marcados.length + ') tienen traducción', faltan.slice(0, 8));
+    const malas = Object.keys(d).filter((k) => vars(k) !== vars(d[k]));
+    ok(!malas.length, idioma + ': las traducciones conservan las variables {…}', malas.slice(0, 5));
+    const cura = Object.keys(d).filter((k) => /Cura #[12]/.test(k) && /Nitritpökelsalz/i.test(d[k]));
+    ok(!cura.length, idioma + ': la cura #1/#2 no se traduce como Nitritpökelsalz', cura);
+  }
+  const datos = JSON.stringify(T.datosParaRespaldo ? T.datosParaRespaldo() : {});
+  ok(!datos.includes(LS_IDIOMA), 'el idioma no viaja en el respaldo');
+
+  for (const [idioma, re, cocinar] of [['en', /botulism/i, /nitrosamine/i], ['de', /Botulismus/, /Nitrosamin/]]) {
+    const { T: Ti } = cargarApp({ [LS_IDIOMA]: idioma });
+    ok(Ti.IDIOMA === idioma, idioma + ': la elección guardada se respeta al abrir');
+    const mal = Ti.compute(Ti.estadoDeData(Object.assign({}, Ti.RECETAS.salame, { curaTipo: 'cura1' })));
+    ok(mal.alertas.some((a) => a.tone === 'bad' && re.test(a.texto)), idioma + ': cura #1 en un fermentado sigue en rojo, con el aviso de botulismo traducido');
+    const coc = Object.keys(Ti.RECETAS).find((k) => Ti.RECETAS[k].tipo === 'cocido');
+    const c2 = Ti.compute(Ti.estadoDeData(Object.assign({}, Ti.RECETAS[coc], { curaTipo: 'cura2' })));
+    ok(c2.alertas.some((a) => a.tone === 'bad' && cocinar.test(a.texto)), idioma + ': cura #2 en un cocido sigue en rojo (nitrosaminas)');
+    ok(!mal.alertas.some((a) => /botulismo|Usá cura/.test(a.texto)), idioma + ': no quedan avisos en castellano');
+    const hoja = Ti.traducirHTML('<h2>Ingredientes</h2><td>Carne de cerdo</td>');
+    ok(!hoja.includes('<h2>Ingredientes</h2>'), idioma + ': la hoja impresa traduce sus títulos', hoja);
+  }
+  {
+    const { T: Tc, ls, ctx } = cargarApp();
+    let recargas = 0;
+    ctx.location = { reload: () => { recargas++; } };
+    ok(Tc.cambiarIdioma('de') === true && ls.get(LS_IDIOMA) === 'de' && recargas === 1, 'cambiar el idioma lo guarda y recarga');
+    ok(Tc.cambiarIdioma('xx') === false && ls.get(LS_IDIOMA) === 'de', 'un idioma desconocido no cambia nada');
+  }
 }
 
 // ================= escalar el lote según lo que tengo =================
