@@ -829,6 +829,7 @@ console.log('\n== Idiomas ==');
     ok(!faltan.length, idioma + ': todos los textos marcados (' + marcados.length + ') tienen traducción', faltan.slice(0, 8));
     const malas = Object.keys(d).filter((k) => vars(k) !== vars(d[k]));
     ok(!malas.length, idioma + ': las traducciones conservan las variables {…}', malas.slice(0, 5));
+    ok(/BORRAR/.test(d['Para confirmar escribí BORRAR'] || ''), idioma + ': el aviso de borrado en bloque sigue pidiendo BORRAR');
     const cura = Object.keys(d).filter((k) => /Cura #[12]/.test(k) && /Nitritpökelsalz/i.test(d[k]));
     ok(!cura.length, idioma + ': la cura #1/#2 no se traduce como Nitritpökelsalz', cura);
   }
