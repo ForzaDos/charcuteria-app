@@ -6,7 +6,7 @@ stock como libro de movimientos, compras y respaldo. Es **un solo archivo** (`ap
 que corre en la web y dentro de un APK Android (WebView). Repo **público** (MIT): <https://github.com/ForzaDos/charcuteria-app>, arrancó de cero el 04/11/2026 con un solo commit
 para no publicar el historial viejo. El historial anterior (con releases 1.4–1.0.9) quedó en el repo **privado**
 `ForzaDos/charcuteria-app-historial`: no hacerlo público ni copiar de ahí commits, tags ni APK viejos (tienen datos personales).
-**Versión actual: 1.1.1 (versionCode 13)**, 03/11/2026. Historial en `CHANGELOG.md`, roadmap en `PLAN.md`, decisiones en `docs/adr/`.
+**Versión actual: 1.1.1 (versionCode 13)**, recompilada el 20/11/2026 con idiomas y escalar el lote. Historial en `CHANGELOG.md`, roadmap en `PLAN.md`, decisiones en `docs/adr/`.
 
 ## Reglas
 - Identidad pública: **ForzaDos** (`ForzaDos <ForzaDos@users.noreply.github.com>`). Nunca apellido ni correo real.

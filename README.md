@@ -71,6 +71,7 @@ La sal de cura no está fija: se elige, se cambia o se quita desde la receta. Lo
 
 - Varios lotes a la vez, por estado: **En preparación → En proceso → Terminado** (o Cancelado).
 - Cada lote parte de una receta del recetario o de una nueva, y se puede ajustar sin tocar la original.
+- **Escalar según lo que tengo**: elegís una carne o el tocino y ponés los gramos que tenés (por ejemplo 850 g de cerdo). El total del lote se recalcula para que ese ingrediente pese eso, y todo lo demás (sal, cura, especias) se ajusta sin cambiar ningún porcentaje.
 - **Elaborar** descuenta del stock lo que realmente usaste ese día. Si algo no alcanza, pregunta si lo compraste y no lo cargaste.
 - Mientras se cura, muestra el día en que va (día 12 de ≈32) y el peso esperado. Al **Terminar**, cargás el peso real.
 
@@ -94,6 +95,12 @@ La sal de cura no está fija: se elige, se cambia o se quita desde la receta. Lo
 <img src="docs/capturas/08-ficha-pdf.jpg" width="460" alt="Hoja impresa de una receta de salame con logo, ingredientes y pasos">
 
 Desde el recetario, desde el editor o desde un lote: una hoja A4 con el logo, los datos clave (peso, merma, peso final, calibre, días), las advertencias, los ingredientes con % y gramos, la tripa y el cierre, los pasos numerados y las notas. En el teléfono se guarda como PDF desde el diálogo de impresión de Android. También se pueden imprimir las compras y el stock.
+
+### Idiomas
+
+- **Castellano, inglés y alemán**, con el selector ES / EN / DE de arriba. Se traduce toda la pantalla, los avisos de seguridad, las hojas impresas y las planillas; los números y las fechas siguen el idioma.
+- Las recetas (nombres, ingredientes, pasos y notas) son tus datos y quedan como las escribiste, también las de ejemplo, que vienen en castellano.
+- En alemán la sal de cura se llama «Cure #1 / Cure #2», no Nitritpökelsalz: tiene unas 10 veces más nitrito.
 
 ### Respaldo
 
@@ -122,6 +129,8 @@ Si encontrás un error o tenés una receta o una mejora para proponer, abrí un 
 ## Para desarrolladores
 
 Toda la app es un único archivo, [`app/index.html`](app/index.html): HTML, CSS y JavaScript ES5, sin dependencias ni pasos de compilación. La versión Android es un `WebView` que lleva ese archivo adentro, con un puente mínimo en Java para imprimir y guardar archivos.
+
+**Traducciones**: todo texto visible pasa por `tx('texto en castellano')`; la clave es el castellano y, si falta una traducción, se ve el castellano. Los diccionarios están en [`app/i18n/en.json`](app/i18n/en.json) y [`app/i18n/de.json`](app/i18n/de.json); después de editarlos, `node app/i18n/meter.mjs` los copia adentro de `index.html`. Los tests fallan si un texto marcado no tiene traducción.
 
 ```text
 app/        la app (index.html) y los tests
