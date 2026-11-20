@@ -688,5 +688,8 @@
  "Días estimados": "Estimated days",
  "Peso de mezcla": "Mix weight",
  "Aw estimado": "Estimated aw",
- "Costo estimado": "Estimated cost"
+ "Costo estimado": "Estimated cost",
+ "Poné los gramos que tenés (más de 0)": "Enter the grams you have (more than 0)",
+ "Receta ajustada: total {kg} kg": "Recipe adjusted: total {kg} kg",
+ "Gramos de {n}: escribí lo que tenés y la receta se ajusta": "Grams of {n}: type what you have and the recipe adjusts"
 }

@@ -688,5 +688,8 @@
  "Días estimados": "Geschätzte Tage",
  "Peso de mezcla": "Masse-Gewicht",
  "Aw estimado": "Geschätzte aw",
- "Costo estimado": "Geschätzte Kosten"
+ "Costo estimado": "Geschätzte Kosten",
+ "Poné los gramos que tenés (más de 0)": "Gib die Gramm ein, die du hast (mehr als 0)",
+ "Receta ajustada: total {kg} kg": "Rezept angepasst: gesamt {kg} kg",
+ "Gramos de {n}: escribí lo que tenés y la receta se ajusta": "Gramm {n}: gib ein, was du hast, und das Rezept passt sich an"
 }

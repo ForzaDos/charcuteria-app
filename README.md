@@ -5,7 +5,7 @@
 Pensada para quien hace salames, bondiolas, pancetas, leberwurst o salmueras en su casa: pesás la carne, la app calcula la sal, la sal de cura, los aditivos y las especias, te avisa si algo es peligroso, lleva la cuenta de lo que tenés en el stock y te arma la receta en PDF para tenerla a mano en la mesada.
 
 [![Licencia MIT](https://img.shields.io/badge/licencia-MIT-c75b45)](LICENSE)
-![Android y web](https://img.shields.io/badge/Android%20%2B%20web-1.1.1-e2955c)
+![Android y web](https://img.shields.io/badge/Android%20%2B%20web-1.2.0-e2955c)
 ![Offline](https://img.shields.io/badge/sin%20internet-sin%20cuentas-8e3f30)
 
 <table>
@@ -71,7 +71,7 @@ La sal de cura no está fija: se elige, se cambia o se quita desde la receta. Lo
 
 - Varios lotes a la vez, por estado: **En preparación → En proceso → Terminado** (o Cancelado).
 - Cada lote parte de una receta del recetario o de una nueva, y se puede ajustar sin tocar la original.
-- **Escalar según lo que tengo**: elegís una carne o el tocino y ponés los gramos que tenés (por ejemplo 850 g de cerdo). El total del lote se recalcula para que ese ingrediente pese eso, y todo lo demás (sal, cura, especias) se ajusta sin cambiar ningún porcentaje.
+- **Escalar según lo que tengo**: en la lista de ingredientes, la cantidad en gramos de cada carne y del tocino se puede escribir. Si tenés 850 g de cerdo, ponés 850 ahí y todo el lote se recalcula (sal, cura, especias, kg totales) sin cambiar ningún porcentaje.
 - **Elaborar** descuenta del stock lo que realmente usaste ese día. Si algo no alcanza, pregunta si lo compraste y no lo cargaste.
 - Mientras se cura, muestra el día en que va (día 12 de ≈32) y el peso esperado. Al **Terminar**, cargás el peso real.
 

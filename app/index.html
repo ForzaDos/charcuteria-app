@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Charcutería">
-<title>Charcutería 1.1.1</title>
+<title>Charcutería 1.2.0</title>
 <style>
   :root{
     --bg:#120e0d;
@@ -134,11 +134,9 @@
   .cura-tipo{font-size:8px;color:#9b887d;text-align:right;text-transform:uppercase;letter-spacing:.03em;border:0;background:transparent;cursor:default}
   .cura-nombre{display:flex;align-items:center;font-size:13px;padding:8px 2px;border-left:3px solid #e6b45c}
 
-  .escalar{margin-top:14px;padding-top:12px;border-top:1px solid #2f2520}
-  .escalar-fila{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;align-items:stretch}
-  .escalar-fila select{grid-column:1 / -1;font-size:15px;padding:10px 12px;min-width:0}
-  .escalar-fila .input-unit input{padding:10px 0;font-size:16px}
-  .escalar-fila button{padding:0 14px}
+  .ing-g-input{width:100%;text-align:right;font-size:14px;font-weight:650;padding:8px 4px;border-radius:10px}
+  .ing-row.carnico input.ing-g-input{color:#f0c79e}
+  .ing-row.grasa input.ing-g-input{color:#f0cd8c}
   .add-form{display:grid;grid-template-columns:1fr 68px;gap:6px;margin-top:12px}
   .add-form input{font-size:15px}
   .add-form select{grid-column:1 / -1;font-size:14px;padding:10px 12px}
@@ -500,7 +498,7 @@
       <circle cx="24" cy="23" r="1.2" fill="#f7e7d8" opacity=".65"/>
     </svg>
     <div>
-      <h1>Charcutería <span class="app-version" id="app-version">1.1.1</span></h1>
+      <h1>Charcutería <span class="app-version" id="app-version">1.2.0</span></h1>
       <p>curado seco · fermentados · cocidos</p>
     </div>
     <select class="idioma-sel" id="idioma" aria-label="Idioma">
@@ -594,18 +592,6 @@
             <span>kg</span>
           </div>
           <p class="hint" id="kg-hint">Peso total de la mezcla; los porcentajes se aplican a la base cárnica.</p>
-        </div>
-        <div class="escalar" id="escalar-campo" hidden>
-          <span class="field-label">Escalar según lo que tengo</span>
-          <div class="escalar-fila">
-            <select id="escalar-ing" aria-label="Carne o grasa que tengo"></select>
-            <div class="input-unit">
-              <input id="escalar-g" type="number" inputmode="decimal" min="1" step="1" placeholder="850" aria-label="Gramos que tengo">
-              <span>g</span>
-            </div>
-            <button type="button" class="btn-primary" id="escalar-btn">Escalar</button>
-          </div>
-          <p class="hint" id="escalar-hint">Poné cuánto tenés de una carne o del tocino: el total se ajusta y se mantienen los porcentajes.</p>
         </div>
       </div>
 
@@ -1009,7 +995,7 @@
     </div>
     <div class="datos-bloque">
       <h3>Acerca de</h3>
-      <p class="about-title">Charcutería <strong id="about-version">1.1.1</strong></p>
+      <p class="about-title">Charcutería <strong id="about-version">1.2.0</strong></p>
       <p class="hint">Autor: <strong>ForzaDos</strong> · calculadora offline: los datos se guardan solo en este dispositivo.</p>
     </div>
   </div>
@@ -1232,7 +1218,7 @@
 (function () {
   'use strict';
 
-  var APP_VERSION = '1.1.1';
+  var APP_VERSION = '1.2.0';
   var APP_AUTOR = 'ForzaDos';
 
   /* ===== CALC-INICIO ===== */
@@ -2964,41 +2950,12 @@
     return Math.round(kg * 1000) / 1000;
   }
 
-  function opcionesEscalar() {
-    var lista = [];
-    state.ingredientes.forEach(function (ing, idx) {
-      if ((ing.rol === 'carnico' || ing.rol === 'grasa') && num(ing.pct) > 0) lista.push({ idx: idx, ing: ing });
-    });
-    return lista;
-  }
-
-  var HINT_ESCALAR = 'Poné cuánto tenés de una carne o del tocino: el total se ajusta y se mantienen los porcentajes.';
-
-  function renderEscalar() {
-    var lista = opcionesEscalar();
-    var campo = $('escalar-campo');
-    campo.hidden = state.editandoReceta || state.tipo === 'salmuera' || !lista.length || !permisos().receta;
-    $('escalar-hint').textContent = tx(HINT_ESCALAR);
-    $('escalar-g').value = '';
-    if (campo.hidden) return;
-    var sel = $('escalar-ing');
-    var previo = sel.value;
-    sel.innerHTML = '';
-    lista.forEach(function (x) {
-      var o = document.createElement('option');
-      o.value = String(x.idx);
-      o.textContent = (x.ing.nombre || tx('Ingrediente')) + ' (' + fmt(num(x.ing.pct), 1) + ' %)';
-      sel.appendChild(o);
-    });
-    var sigue = lista.some(function (x) { return String(x.idx) === previo; });
-    sel.value = sigue ? previo : String(lista[0].idx);
-  }
-
+  // Escribir los gramos de una carne o del tocino ajusta los kg de la receta: los porcentajes no cambian.
   function escalarLote(idx, g) {
     if (!permisos().receta) return false;
     var kg = kgParaIngrediente(state, idx, g);
     if (kg === null) {
-      toast(tx('Elegí una carne o grasa con % y poné los gramos que tenés'));
+      toast(tx('Poné los gramos que tenés (más de 0)'));
       return false;
     }
     if (kg < 0.05) {
@@ -3010,9 +2967,7 @@
     renderIngredientes();
     recalcular();
     guardarSesion();
-    var nombre = state.ingredientes[idx].nombre || 'Ingrediente';
-    $('escalar-g').value = String(num(g));
-    $('escalar-hint').textContent = tx('Listo: con {g} g de {n} el total queda en {kg} kg.', { g: gramos(num(g)), n: nombre, kg: fmt(kg, 3) });
+    toast(tx('Receta ajustada: total {kg} kg', { kg: fmt(kg, 3) }));
     return true;
   }
 
@@ -3074,10 +3029,26 @@
         guardarSesion();
       });
 
-      var g = document.createElement('span');
-      g.className = 'ing-g';
+      var g;
+      if (ing.rol === 'carnico' || ing.rol === 'grasa') {
+        // Editable: lo que escribís es lo que tenés, y la receta se ajusta a eso.
+        g = document.createElement('input');
+        g.type = 'number';
+        g.className = 'ing-g ing-g-input';
+        g.inputMode = 'decimal';
+        g.min = '0';
+        g.step = 'any';
+        g.disabled = !permisos().receta;
+        g.setAttribute('aria-label', tx('Gramos de {n}: escribí lo que tenés y la receta se ajusta', { n: ing.nombre }));
+        g.addEventListener('change', function (e) {
+          if (!escalarLote(idx, e.target.value)) recalcular();
+        });
+      } else {
+        g = document.createElement('span');
+        g.className = 'ing-g';
+        g.textContent = '—';
+      }
       g.dataset.idx = String(idx);
-      g.textContent = '—';
 
       var del = document.createElement('button');
       del.type = 'button';
@@ -3119,7 +3090,6 @@
     });
 
     renderGrupoCura(cont);
-    renderEscalar();
   }
 
   // Cura que se propone al agregarla: #1 para lo que se cocina o se come fresco, #2 para lo que se seca largo.
@@ -5390,7 +5360,6 @@
     $('card-tripa').hidden = !esEmbutido(state.tipo);
     // Una receta del recetario no muestra nada del stock: tripa, cierre y costos se ven al armar el lote.
     $('tripa-item-campo').hidden = state.editandoReceta;
-    renderEscalar();
     $('card-envolturas').hidden = state.tipo === 'salmuera' || state.editandoReceta;
     $('card-costos').hidden = esBrine || state.editandoReceta;
     $('tile-azucar').hidden = esBrine;
@@ -5450,7 +5419,12 @@
     var celdas = document.querySelectorAll('#ingredientes .ing-g[data-idx]');
     for (var i = 0; i < celdas.length; i++) {
       var idx = parseInt(celdas[i].dataset.idx, 10);
-      celdas[i].textContent = r.ing[idx] ? gramos(r.ing[idx].g) : '—';
+      var txtG = r.ing[idx] ? gramos(r.ing[idx].g) : '—';
+      if (celdas[i].tagName === 'INPUT') {
+        celdas[i].value = r.ing[idx] ? String(r.ing[idx].g >= 100 ? Math.round(r.ing[idx].g) : Math.round(r.ing[idx].g * 10) / 10) : '';
+      } else {
+        celdas[i].textContent = txtG;
+      }
     }
 
     var fr = CURAS[state.curaTipo] || CURAS.ninguna;
@@ -6188,15 +6162,8 @@
       setVista('lotes');
     });
 
-    $('escalar-btn').addEventListener('click', function () {
-      escalarLote(parseInt($('escalar-ing').value, 10), $('escalar-g').value);
-    });
-    $('escalar-g').addEventListener('keydown', function (e) {
-      if (e.key === 'Enter') escalarLote(parseInt($('escalar-ing').value, 10), e.target.value);
-    });
     $('kg').addEventListener('input', function (e) {
       state.kg = Math.max(0, num(e.target.value));
-      $('escalar-hint').textContent = tx(HINT_ESCALAR);
       recalcular();
       guardarSesion();
     });
@@ -6555,10 +6522,6 @@
     "Total (cárnicos + grasa + aditivos)": "Total (meat + fat + additives)",
     "kg": "kg",
     "Peso total de la mezcla; los porcentajes se aplican a la base cárnica.": "Total weight of the mix; percentages apply to the meat base.",
-    "Escalar según lo que tengo": "Scale to what I have",
-    "g": "g",
-    "Escalar": "Scale",
-    "Poné cuánto tenés de una carne o del tocino: el total se ajusta y se mantienen los porcentajes.": "Enter how much you have of a meat or of back fat: the total adjusts and the percentages are kept.",
     "Ingredientes": "Ingredients",
     "Ingrediente": "Ingredient",
     "% base": "% base",
@@ -6710,6 +6673,7 @@
     "Ítem": "Item",
     "Nombre del ítem nuevo": "New item name",
     "Unidad": "Unit",
+    "g": "g",
     "m": "m",
     "u": "u",
     "Grupo": "Group",
@@ -6763,8 +6727,6 @@
     "Nombre de la receta": "Recipe name",
     "Notas de la receta": "Recipe notes",
     "Kilos totales de la mezcla": "Total kilos of the mix",
-    "Carne o grasa que tengo": "Meat or fat I have",
-    "Gramos que tengo": "Grams I have",
     "Nuevo ingrediente": "New ingredient",
     "Nombre del ingrediente": "Ingredient name",
     "Porcentaje": "Percentage",
@@ -6864,14 +6826,15 @@
     "Agregar al stock": "Add to stock",
     "Terminá de editar la receta: Guardar o Cancelar": "Finish editing the recipe: Save or Cancel",
     "Ajustado: carnes {c} % · tocino {t} %": "Adjusted: meats {c} % · back fat {t} %",
-    "Elegí una carne o grasa con % y poné los gramos que tenés": "Choose a meat or fat with % and enter the grams you have",
+    "Poné los gramos que tenés (más de 0)": "Enter the grams you have (more than 0)",
     "Es muy poco: la receta quedaría en menos de 50 g": "That is too little: the recipe would be under 50 g",
-    "Listo: con {g} g de {n} el total queda en {kg} kg.": "Done: with {g} g of {n} the total comes to {kg} kg.",
+    "Receta ajustada: total {kg} kg": "Recipe adjusted: total {kg} kg",
     "Cárnicos / proteínas": "Meat / protein",
     "Grasa": "Fat",
     "Aditivos": "Additives",
     "Sin ingredientes: agregá sal, azúcar y especias.": "No ingredients: add salt, sugar and spices.",
     "Porcentaje sobre la base": "Percentage on the base",
+    "Gramos de {n}: escribí lo que tenés y la receta se ajusta": "Grams of {n}: type what you have and the recipe adjusts",
     "Quitar ingrediente": "Remove ingredient",
     "sin cura": "no cure",
     "+ Agregar sal de cura": "+ Add curing salt",
@@ -7290,10 +7253,6 @@
     "Total (cárnicos + grasa + aditivos)": "Gesamt (Fleisch + Fett + Zusatzstoffe)",
     "kg": "kg",
     "Peso total de la mezcla; los porcentajes se aplican a la base cárnica.": "Gesamtgewicht der Masse; die Prozente beziehen sich auf die Fleischbasis.",
-    "Escalar según lo que tengo": "Nach Vorrat skalieren",
-    "g": "g",
-    "Escalar": "Skalieren",
-    "Poné cuánto tenés de una carne o del tocino: el total se ajusta y se mantienen los porcentajes.": "Gib ein, wie viel du von einem Fleisch oder vom Rückenspeck hast: Die Gesamtmenge passt sich an, die Prozente bleiben gleich.",
     "Ingredientes": "Zutaten",
     "Ingrediente": "Zutat",
     "% base": "% Basis",
@@ -7445,6 +7404,7 @@
     "Ítem": "Artikel",
     "Nombre del ítem nuevo": "Name des neuen Artikels",
     "Unidad": "Einheit",
+    "g": "g",
     "m": "m",
     "u": "u",
     "Grupo": "Gruppe",
@@ -7498,8 +7458,6 @@
     "Nombre de la receta": "Name des Rezepts",
     "Notas de la receta": "Notizen zum Rezept",
     "Kilos totales de la mezcla": "Gesamtkilos der Masse",
-    "Carne o grasa que tengo": "Fleisch oder Fett, das ich habe",
-    "Gramos que tengo": "Gramm, die ich habe",
     "Nuevo ingrediente": "Neue Zutat",
     "Nombre del ingrediente": "Name der Zutat",
     "Porcentaje": "Prozent",
@@ -7599,14 +7557,15 @@
     "Agregar al stock": "Zum Lager hinzufügen",
     "Terminá de editar la receta: Guardar o Cancelar": "Beende das Bearbeiten des Rezepts: Speichern oder Abbrechen",
     "Ajustado: carnes {c} % · tocino {t} %": "Angepasst: Fleisch {c} % · Rückenspeck {t} %",
-    "Elegí una carne o grasa con % y poné los gramos que tenés": "Wähle ein Fleisch oder Fett mit % und gib die Gramm ein, die du hast",
+    "Poné los gramos que tenés (más de 0)": "Gib die Gramm ein, die du hast (mehr als 0)",
     "Es muy poco: la receta quedaría en menos de 50 g": "Das ist zu wenig: Das Rezept läge unter 50 g",
-    "Listo: con {g} g de {n} el total queda en {kg} kg.": "Fertig: Mit {g} g {n} ergibt die Gesamtmenge {kg} kg.",
+    "Receta ajustada: total {kg} kg": "Rezept angepasst: gesamt {kg} kg",
     "Cárnicos / proteínas": "Fleisch / Eiweiß",
     "Grasa": "Fett",
     "Aditivos": "Zusatzstoffe",
     "Sin ingredientes: agregá sal, azúcar y especias.": "Keine Zutaten: Füge Salz, Zucker und Gewürze hinzu.",
     "Porcentaje sobre la base": "Prozent auf die Basis",
+    "Gramos de {n}: escribí lo que tenés y la receta se ajusta": "Gramm {n}: gib ein, was du hast, und das Rezept passt sich an",
     "Quitar ingrediente": "Zutat entfernen",
     "sin cura": "ohne Cure",
     "+ Agregar sal de cura": "+ Cure hinzufügen",

@@ -2,10 +2,10 @@
 
 La numeración actual es **1.0.x**. Las releases **1.4 a 1.7** son builds anteriores a ese cambio de numeración; se conservan como histórico.
 
-## 1.1.1 (recompilada) — 2026-11-20
+## 1.2.0 — 2026-11-20
 
+- **Escalar el lote según lo que tengo**: los gramos de cada carne y del tocino, en la lista de ingredientes, ahora se pueden escribir. Si tenés 850 g de cerdo, escribís 850 ahí y los kg del lote se recalculan para que esa carne pese eso, sin cambiar ningún porcentaje; todo lo demás (sal, cura, especias) se ajusta solo. Funciona en enteros, frescos, fermentados y cocidos, mientras el lote está en preparación (en proceso quedan bloqueados). Reemplaza al cuadro «Escalar según lo que tengo».
 - **Idiomas: castellano, inglés y alemán.** Arriba a la derecha hay un selector ES / EN / DE; al cambiarlo la app se recarga en ese idioma (con el editor de recetas abierto pide confirmar). Se traducen la pantalla, los avisos de seguridad, los mensajes, las hojas impresas, las planillas CSV y los avisos de Android. Los números y las fechas siguen el idioma. Las recetas (nombres, ingredientes, pasos y notas) son datos tuyos y quedan como las escribiste, también las de ejemplo. La elección se guarda en el teléfono y no viaja en el respaldo. En alemán la cura #1/#2 se llama «Cure #1/#2», nunca Nitritpökelsalz (que tiene unas 10 veces menos nitrito).
-- **Escalar el lote según lo que tengo**: en un lote en preparación, debajo de los kg, se elige una carne o el tocino y se ponen los gramos que hay (por ejemplo 850 g de cerdo): el total del lote se recalcula para que ese ingrediente pese eso, sin cambiar ningún porcentaje. Vale para enteros, frescos, fermentados y cocidos; no aparece en salmueras, en el editor del recetario ni en lotes que ya están en proceso.
 
 ## 1.1.1 — 2026-11-03
 

@@ -33,7 +33,6 @@ for (const m of js.matchAll(/\{ key: '[a-z]+', label: '([^']*)' \}/g)) add(m[1],
 for (const m of js.matchAll(/\['[a-z]+', '([A-ZÁÉÍÓÚ][^']*)'\]/g)) add(m[1], 'cat');
 for (const m of js.matchAll(/vacio: '([^']*)'/g)) add(m[1], 'vacio');
 for (const m of js.matchAll(/titulo: '([^']*)', rol:/g)) add(m[1], 'print');
-{ const m = js.match(/var HINT_ESCALAR = '([^']*)'/); add(m[1], 'tx'); }
 // Hoja impresa: textos fijos dentro de literales HTML y rótulos de tablas
 const desdeImp = js.slice(js.indexOf('function tablaImpresion'), js.indexOf('function abrirImpresion'));
 for (const m of desdeImp.matchAll(/'((?:[^'\\]|\\.)*)'/g)) {
