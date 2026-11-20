@@ -19,7 +19,7 @@ const EXPORTA = [
   'deshacerElaboracion', 'terminarLote', 'cancelarLote', 'borrarLote', 'permisos', 'setVista',
   'recalcular', 'datosParaRespaldo', 'importarRespaldoTexto', 'csvMovimientos', 'csvLotes',
   'guardarModalReceta', 'abrirModalReceta', 'editarReceta', 'guardarEditorReceta', 'recetaPorId',
-  'ejecutarMov', 'existenciaItem', 'grupoStock', 'categoriaStockPara', 'pasaFiltroStock', 'necesidadesPorItem', 'faltantesLote', 'cambiarGrupo', 'cambiarTipoTripa', 'grupoItem', 'itemsParaEnvoltura', 'curaPorDefecto', 'renderGrupoCura', 'borrarTodosLosMovimientos', 'borrarTodoElStock', 'totalesStock', 'fijarProvisorio', 'fijarVinculo', 'elegirTripa', 'cambiarEnvoltura', 'calibreDeNombre', 'tripaDe', 'costoEnvolturasDe', 'estadoDeData', 'necesidadesDeData', 'datosReceta', 'limpiarDataReceta', 'lineasCosto', 'actualizarPreciosStock', 'ajustarComponente', 'normalizarTodosComponentes', 'construirDocImpresion', 'fichaRecetaDoc', 'abrirImpresion', 'fmt'
+  'ejecutarMov', 'existenciaItem', 'grupoStock', 'categoriaStockPara', 'pasaFiltroStock', 'necesidadesPorItem', 'faltantesLote', 'cambiarGrupo', 'cambiarTipoTripa', 'grupoItem', 'itemsParaEnvoltura', 'curaPorDefecto', 'renderGrupoCura', 'borrarTodosLosMovimientos', 'borrarTodoElStock', 'totalesStock', 'fijarProvisorio', 'fijarVinculo', 'elegirTripa', 'cambiarEnvoltura', 'calibreDeNombre', 'tripaDe', 'costoEnvolturasDe', 'estadoDeData', 'necesidadesDeData', 'datosReceta', 'limpiarDataReceta', 'lineasCosto', 'actualizarPreciosStock', 'ajustarComponente', 'normalizarTodosComponentes', 'construirDocImpresion', 'fichaRecetaDoc', 'abrirImpresion', 'fmt', 'kgParaIngrediente', 'escalarLote'
 ];
 const fin = /\n\s*init\(\);\s*\r?\n\}\)\(\);\s*$/;
 const coincidencias = scripts[0][1].match(new RegExp(fin.source, 'g')) || [];
@@ -809,6 +809,43 @@ console.log('\n== Grupos del stock ==');
   ok(sin.alertas.some((a) => a.tone === 'bad' && /botulismo/.test(a.texto)), 'quitar la cura de un fermentado sigue dando la alerta roja');
   const mal = T.compute(T.estadoDeData(Object.assign({}, T.RECETAS.salame, { curaTipo: 'cura1' })));
   ok(mal.alertas.some((a) => a.tone === 'bad' && /botulismo/.test(a.texto)), 'cambiar a cura #1 en un fermentado también');
+}
+
+// ================= escalar el lote según lo que tengo =================
+console.log('\n== Escalar según lo que tengo ==');
+{
+  const { T } = cargarApp();
+  for (const tipo of ['fermentado', 'entero', 'cocido', 'fresco']) {
+    const id = Object.keys(T.RECETAS).find((k) => T.RECETAS[k].tipo === tipo);
+    if (!id) continue;
+    const l = T.crearLote({ recetaId: id, kg: 5 });
+    T.abrirLote(l.id);
+    const antes = T.state.ingredientes.map((x) => x.pct);
+    const idx = T.state.ingredientes.findIndex((x) => x.rol === 'carnico' && x.pct > 0);
+    ok(T.escalarLote(idx, 850) === true, tipo + ': escalar con 850 g de ' + T.state.ingredientes[idx].nombre);
+    const r = T.compute(T.state);
+    cerca(r.ing[idx].g, 850, 1, tipo + ': ese ingrediente queda en 850 g');
+    ok(T.state.ingredientes.every((x, i) => x.pct === antes[i]), tipo + ': no cambia ningún porcentaje');
+    ok(T.lotePorId(l.id).data.kg === T.state.kg, tipo + ': el lote guarda los kg nuevos', T.state.kg);
+    const g = T.state.ingredientes.findIndex((x) => x.rol === 'grasa' && x.pct > 0);
+    if (g >= 0) {
+      T.escalarLote(g, 400);
+      cerca(T.compute(T.state).ing[g].g, 400, 1, tipo + ': también escala por la grasa (400 g)');
+    }
+    T.cerrarLote();
+  }
+  const sal = Object.keys(T.RECETAS).find((k) => T.RECETAS[k].tipo === 'salmuera');
+  if (sal) ok(T.kgParaIngrediente(T.estadoDeData(T.RECETAS[sal]), 0, 850) === null, 'en salmuera no se escala por ingrediente');
+  const id = Object.keys(T.RECETAS).find((k) => T.RECETAS[k].tipo === 'fermentado');
+  const l = T.crearLote({ recetaId: id, kg: 5 });
+  T.abrirLote(l.id);
+  const adit = T.state.ingredientes.findIndex((x) => x.rol !== 'carnico' && x.rol !== 'grasa');
+  ok(T.kgParaIngrediente(T.state, adit, 20) === null, 'no se escala por un aditivo');
+  ok(T.kgParaIngrediente(T.state, 0, 0) === null && T.kgParaIngrediente(T.state, 0, 'abc') === null, 'sin gramos válidos no hace nada');
+  T.lotePorId(l.id).estado = 'proceso';
+  const kgAntes = T.state.kg;
+  const idx = T.state.ingredientes.findIndex((x) => x.rol === 'carnico');
+  ok(T.escalarLote(idx, 850) === false && T.state.kg === kgAntes, 'un lote en proceso no se puede escalar');
 }
 
 console.log('\n' + (fallos ? 'FALLOS: ' + fallos : 'TODO OK'));

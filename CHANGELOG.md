@@ -2,6 +2,10 @@
 
 La numeración actual es **1.0.x**. Las releases **1.4 a 1.7** son builds anteriores a ese cambio de numeración; se conservan como histórico.
 
+## Sin publicar
+
+- **Escalar el lote según lo que tengo**: en un lote en preparación, debajo de los kg, se elige una carne o el tocino y se ponen los gramos que hay (por ejemplo 850 g de cerdo): el total del lote se recalcula para que ese ingrediente pese eso, sin cambiar ningún porcentaje. Vale para enteros, frescos, fermentados y cocidos; no aparece en salmueras, en el editor del recetario ni en lotes que ya están en proceso.
+
 ## 1.1.1 — 2026-11-03
 
 - **Imprimir / PDF de una receta, en una hoja**: desde el recetario (⋯ → Imprimir / PDF), desde el editor de la receta o desde un lote (botón Imprimir de arriba), sin pasos intermedios; el diálogo con secciones queda en Procesos, Compras y Stock. Sale con el logo de la app, los colores y líneas de la app sobre fondo blanco, datos clave (peso, merma, rendimiento, calibre, días), advertencias (las de cura en rojo), ingredientes agrupados con % y gramos, tripa y cierre o papel y red, pasos numerados y notas. No cambia lo que hay abierto en pantalla. Las demás impresiones (lote, compras, stock) usan el mismo estilo; el rótulo de los kg ahora dice Carne o Mezcla total según el tipo.
