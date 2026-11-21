@@ -811,6 +811,50 @@ console.log('\n== Grupos del stock ==');
   ok(mal.alertas.some((a) => a.tone === 'bad' && /botulismo/.test(a.texto)), 'cambiar a cura #1 en un fermentado también');
 }
 
+// ================= cocidos sin alarma de sal / enteros: días en bolsa =================
+console.log('\n== Cocido: sal libre · Entero: días en bolsa ==');
+{
+  const { T } = cargarApp();
+  const idCoc = Object.keys(T.RECETAS).find((k) => T.RECETAS[k].tipo === 'cocido');
+  const conSal = (pct) => {
+    const d = JSON.parse(JSON.stringify(T.RECETAS[idCoc]));
+    d.ingredientes = d.ingredientes.map((x) => (x.rol === 'sal' ? Object.assign({}, x, { pct }) : x));
+    return T.compute(T.estadoDeData(d));
+  };
+  const esAvisoSal = (a) => /Sal total|Falta la sal/.test(a.texto);
+  ok(!conSal(0.5).alertas.some(esAvisoSal), 'cocido con poca sal (0,5 %): sin avisos de sal');
+  ok(!conSal(5).alertas.some(esAvisoSal), 'cocido con mucha sal (5 %): sin avisos de sal tampoco');
+  ok(conSal(0.5).tonos.sal === 'ok', 'cocido: el cuadro de sal queda en verde');
+  const sinSal = T.compute(T.estadoDeData(Object.assign({}, T.RECETAS[idCoc], { ingredientes: T.RECETAS[idCoc].ingredientes.filter((x) => x.rol !== 'sal') })));
+  ok(!sinSal.alertas.some(esAvisoSal), 'cocido sin sal cargada: sin aviso de falta de sal');
+  const nit = T.compute(T.estadoDeData(Object.assign({}, T.RECETAS[idCoc], { curaTipo: 'cura1', curaPct: 3 })));
+  ok(nit.alertas.some((a) => a.tone === 'bad' && /Nitrito/.test(a.texto)), 'cocido: el aviso de nitrito alto sigue');
+  const mal = T.compute(T.estadoDeData(Object.assign({}, T.RECETAS[idCoc], { curaTipo: 'cura2' })));
+  ok(mal.alertas.some((a) => a.tone === 'bad' && /nitrosaminas/.test(a.texto)), 'cocido: cura #2 sigue en rojo (nitrosaminas)');
+  // Los demás tipos conservan los avisos de sal.
+  const sal = T.compute(T.estadoDeData(Object.assign({}, T.RECETAS.salame, { ingredientes: T.RECETAS.salame.ingredientes.map((x) => (x.rol === 'sal' ? Object.assign({}, x, { pct: 0.5 }) : x)) })));
+  ok(sal.alertas.some((a) => a.tone === 'bad' && /Sal total/.test(a.texto)), 'fermentado: la sal baja sigue en rojo');
+
+  // Días en bolsa: el mayor entre 1 día cada 0,5 cm y la difusión (0,29·espesor² días), más 3 de margen.
+  const ent = (e) => T.compute(T.estadoDeData(Object.assign({}, T.RECETAS.bondiola, { espesor: e })));
+  ok(ent(5).diasBolsa === 13 && ent(2).diasBolsa === 7 && ent(6).diasBolsa === 15, 'hasta ~7 cm manda la regla lineal: 2 cm → 7, 5 cm → 13, 6 cm → 15', [ent(2).diasBolsa, ent(5).diasBolsa, ent(6).diasBolsa]);
+  ok(ent(8).diasBolsa === 22 && ent(10).diasBolsa === 32 && ent(12).diasBolsa === 45, 'en piezas gruesas manda la difusión: 8 cm → 22, 10 cm → 32, 12 cm → 45', [ent(8).diasBolsa, ent(10).diasBolsa, ent(12).diasBolsa]);
+  ok(ent(12).diasBolsa > ent(10).diasBolsa && ent(10).diasBolsa > ent(8).diasBolsa && ent(8).diasBolsa > ent(6).diasBolsa, 'los días nunca bajan al aumentar el espesor');
+  ok(!ent(10).alertas.some((a) => /el centro tarda mucho en recibir sal y nitrito/.test(a.texto)) && ent(10.5).alertas.some((a) => a.tone === 'warn' && /el centro tarda mucho en recibir sal y nitrito/.test(a.texto)), 'más de 10 cm avisa que el centro tarda y que hay que revisar el color al cortar');
+  ok(ent(4.2).diasBolsa === 12, '4,2 cm → 12 días (se redondea para arriba)', ent(4.2).diasBolsa);
+  ok(ent(0).diasBolsa === 0 && ent('').diasBolsa === 0, 'sin espesor no hay días en bolsa');
+  ok(T.compute(T.estadoDeData(Object.assign({}, T.RECETAS.salame, { espesor: 6 }))).diasBolsa === 0, 'solo los enteros usan el espesor');
+  ok(T.RECETAS.bondiola.espesor === 6 && T.RECETAS.panceta.espesor === 4, 'las recetas de ejemplo traen su espesor');
+  // El espesor viaja con el lote y con el recetario.
+  const l = T.crearLote({ recetaId: 'bondiola', kg: 1.2 });
+  T.abrirLote(l.id);
+  ok(T.state.espesor === 6, 'al abrir un lote de bondiola, el espesor es 6 cm', T.state.espesor);
+  T.state.espesor = 8;
+  T.sincronizarLote ? T.sincronizarLote() : null;
+  ok(T.datosReceta().espesor === 8, 'datosReceta incluye el espesor');
+  ok(T.limpiarDataReceta({ tipo: 'entero', espesor: 99 }).espesor === 30 && T.limpiarDataReceta({ tipo: 'entero' }).espesor === 0, 'limpiarDataReceta acota el espesor (0–30) y lo deja en 0 si falta');
+}
+
 // ================= idiomas =================
 console.log('\n== Idiomas ==');
 {

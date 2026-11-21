@@ -2,6 +2,11 @@
 
 La numeración actual es **1.0.x**. Las releases **1.4 a 1.7** son builds anteriores a ese cambio de numeración; se conservan como histórico.
 
+## Sin publicar
+
+- **Cocidos: sin avisos de sal.** Un cocido no pasa por la cámara, así que el % de sal depende de la receta: ya no aparecen los avisos de sal baja, de sal alta ni de «falta la sal», y el cuadro de sal queda en verde («según la receta»). Los avisos de nitrito y de cura (nitrito alto, cura #2 con nitrosaminas, sin cura) siguen igual. Los otros tipos no cambian.
+- **Enteros: días de curado en bolsa al vacío según el espesor.** Hay un campo «Espesor de la pieza» (cm, en la parte más gruesa) y un cuadro «Curado en bolsa al vacío» junto al de nitrito. Los días son el mayor entre 1 día cada 0,5 cm y lo que sale de la difusión de la sal (≈ 0,29 × espesor² días), más 3 días de margen: 2 cm → 7, 4 cm → 11, 6 cm → 15, 8 cm → 22, 10 cm → 32, 12 cm → 45. Hasta unos 7 cm manda la regla lineal; en piezas más gruesas el tiempo crece con el cuadrado del espesor. Con más de 10 cm hay un aviso. Esos días reemplazan a los de salazón en el cálculo de «Días» (si no hay espesor, queda la cuenta vieja por kg). La bondiola y la panceta de ejemplo traen espesor 6 y 4 cm; las que ya tenías en el recetario no tienen espesor hasta que lo cargues. Es una estimación a 2–4 °C: con poca sal o mucha grasa hacen falta más días.
+
 ## 1.2.0 — 2026-11-20
 
 - **Escalar el lote según lo que tengo**: los gramos de cada carne y del tocino, en la lista de ingredientes, ahora se pueden escribir. Si tenés 850 g de cerdo, escribís 850 ahí y los kg del lote se recalculan para que esa carne pese eso, sin cambiar ningún porcentaje; todo lo demás (sal, cura, especias) se ajusta solo. Funciona en enteros, frescos, fermentados y cocidos, mientras el lote está en preparación (en proceso quedan bloqueados). Reemplaza al cuadro «Escalar según lo que tengo».

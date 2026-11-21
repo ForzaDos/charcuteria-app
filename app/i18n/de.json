@@ -691,5 +691,16 @@
  "Costo estimado": "Geschätzte Kosten",
  "Poné los gramos que tenés (más de 0)": "Gib die Gramm ein, die du hast (mehr als 0)",
  "Receta ajustada: total {kg} kg": "Rezept angepasst: gesamt {kg} kg",
- "Gramos de {n}: escribí lo que tenés y la receta se ajusta": "Gramm {n}: gib ein, was du hast, und das Rezept passt sich an"
+ "Gramos de {n}: escribí lo que tenés y la receta se ajusta": "Gramm {n}: gib ein, was du hast, und das Rezept passt sich an",
+ "Espesor de la pieza (en su parte más gruesa)": "Dicke des Stücks (an der dicksten Stelle)",
+ "cm": "cm",
+ "Curado en bolsa al vacío": "Pökeln im Vakuumbeutel",
+ "poné el espesor de la pieza": "gib die Dicke des Stücks ein",
+ "Espesor de la pieza en centímetros": "Dicke des Stücks in Zentimetern",
+ "≈{s} días de curado en bolsa (espesor {e} cm) + ≈{d} días de secado (merma {m} %).": "≈{s} Tage Pökeln im Beutel (Dicke {e} cm) + ≈{d} Tage Trocknung (Gewichtsverlust {m} %).",
+ "según la receta": "laut Rezept",
+ "{d} días": "{d} Tage",
+ "espesor {e} cm · 2–4 °C": "Dicke {e} cm · 2–4 °C",
+ "Curado por equilibrio en bolsa al vacío, en heladera (2–4 °C): 1 día cada 0,5 cm de espesor más 3 días de margen. Desde unos 7 cm el tiempo crece con el cuadrado del espesor (la sal y el nitrito avanzan despacio hacia el centro). Con poca sal o mucha grasa, más días.": "Gleichgewichtspökeln im Vakuumbeutel, im Kühlschrank (2–4 °C): 1 Tag pro 0,5 cm Dicke plus 3 Tage Reserve. Ab etwa 7 cm wächst die Zeit mit dem Quadrat der Dicke (Salz und Nitrit wandern langsam zur Mitte). Bei wenig Salz oder viel Fett mehr Tage einplanen.",
+ "Pieza de {e} cm de espesor: el centro tarda mucho en recibir sal y nitrito. Respetá los días de curado en bolsa y revisá que el color quede parejo al cortar.": "Stück mit {e} cm Dicke: Die Mitte braucht lange, bis Salz und Nitrit ankommen. Halte die Pökeltage im Beutel ein und prüfe beim Aufschneiden, ob die Farbe gleichmäßig ist."
 }

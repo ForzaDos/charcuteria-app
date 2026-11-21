@@ -691,5 +691,16 @@
  "Costo estimado": "Estimated cost",
  "Poné los gramos que tenés (más de 0)": "Enter the grams you have (more than 0)",
  "Receta ajustada: total {kg} kg": "Recipe adjusted: total {kg} kg",
- "Gramos de {n}: escribí lo que tenés y la receta se ajusta": "Grams of {n}: type what you have and the recipe adjusts"
+ "Gramos de {n}: escribí lo que tenés y la receta se ajusta": "Grams of {n}: type what you have and the recipe adjusts",
+ "Espesor de la pieza (en su parte más gruesa)": "Thickness of the piece (at its thickest part)",
+ "cm": "cm",
+ "Curado en bolsa al vacío": "Vacuum-bag curing",
+ "poné el espesor de la pieza": "enter the thickness of the piece",
+ "Espesor de la pieza en centímetros": "Thickness of the piece in centimeters",
+ "≈{s} días de curado en bolsa (espesor {e} cm) + ≈{d} días de secado (merma {m} %).": "≈{s} days of bag curing (thickness {e} cm) + ≈{d} days of drying (weight loss {m} %).",
+ "según la receta": "per recipe",
+ "{d} días": "{d} days",
+ "espesor {e} cm · 2–4 °C": "thickness {e} cm · 2–4 °C",
+ "Curado por equilibrio en bolsa al vacío, en heladera (2–4 °C): 1 día cada 0,5 cm de espesor más 3 días de margen. Desde unos 7 cm el tiempo crece con el cuadrado del espesor (la sal y el nitrito avanzan despacio hacia el centro). Con poca sal o mucha grasa, más días.": "Equilibrium curing in a vacuum bag, in the fridge (2–4 °C): 1 day per 0.5 cm of thickness plus 3 days of margin. From about 7 cm up, the time grows with the square of the thickness (salt and nitrite move slowly toward the center). With low salt or a lot of fat, allow more days.",
+ "Pieza de {e} cm de espesor: el centro tarda mucho en recibir sal y nitrito. Respetá los días de curado en bolsa y revisá que el color quede parejo al cortar.": "Piece {e} cm thick: the center takes a long time to receive salt and nitrite. Keep to the bag-curing days and check that the color is even when you cut it."
 }

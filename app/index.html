@@ -593,6 +593,14 @@
           </div>
           <p class="hint" id="kg-hint">Peso total de la mezcla; los porcentajes se aplican a la base cárnica.</p>
         </div>
+        <div class="field" id="espesor-campo" hidden style="margin-top:12px">
+          <span class="field-label">Espesor de la pieza (en su parte más gruesa)</span>
+          <div class="input-unit">
+            <input id="espesor" type="number" inputmode="decimal" min="0" max="30" step="any" placeholder="6" aria-label="Espesor de la pieza en centímetros">
+            <span>cm</span>
+          </div>
+          <p class="hint">Curado por equilibrio en bolsa al vacío, en heladera (2–4 °C): 1 día cada 0,5 cm de espesor más 3 días de margen. Desde unos 7 cm el tiempo crece con el cuadrado del espesor (la sal y el nitrito avanzan despacio hacia el centro). Con poca sal o mucha grasa, más días.</p>
+        </div>
       </div>
 
       <div id="modo-solido">
@@ -732,6 +740,11 @@
             <span class="tile-label">Nitrato</span>
             <strong id="val-nitrato">—</strong>
             <span class="tile-sub">referencia 300 ppm</span>
+          </div>
+          <div class="tile" id="tile-bolsa" data-tone="ok" hidden>
+            <span class="tile-label">Curado en bolsa al vacío</span>
+            <strong id="val-bolsa">—</strong>
+            <span class="tile-sub" id="bolsa-sub">poné el espesor de la pieza</span>
           </div>
           <div class="tile" id="tile-azucar" data-tone="ok">
             <span class="tile-label">Azúcar</span>
@@ -1275,7 +1288,7 @@
 
   var RECETAS = {
     bondiola: {
-      nombre: 'Bondiola Casera', tipo: 'entero', kg: 1.2, merma: 38, curaTipo: 'cura2', curaPct: 0.25,
+      nombre: 'Bondiola Casera', tipo: 'entero', kg: 1.2, merma: 38, espesor: 6, curaTipo: 'cura2', curaPct: 0.25,
       nota: 'Carne 1,2 kg; los aditivos se calculan sobre la carne y se suman.',
       ingredientes: [
         { rol: 'carnico', nombre: 'Bondiola de cerdo', pct: 100 },
@@ -1287,13 +1300,13 @@
         { rol: 'otro', nombre: 'Antioxidante', pct: 0.05 }
       ],
       procesos: [
-        'Salar y curar la bondiola 7–10 días en frío.',
+        'Salar y curar la bondiola en bolsa al vacío, en heladera (2–4 °C), los días que indica «Curado en bolsa al vacío» (arriba). Darla vuelta una vez por día.',
         'Enjuagar, secar y colgar.',
         'Secar 4–8 semanas hasta la merma deseada.'
       ]
     },
     panceta: {
-      nombre: 'Panceta Curada', tipo: 'entero', kg: 1, merma: 28, curaTipo: 'cura2', curaPct: 0.25,
+      nombre: 'Panceta Curada', tipo: 'entero', kg: 1, merma: 28, espesor: 4, curaTipo: 'cura2', curaPct: 0.25,
       nota: 'Carne 1 kg; los aditivos se calculan sobre la carne y se suman.',
       ingredientes: [
         { rol: 'carnico', nombre: 'Panceta de cerdo', pct: 100 },
@@ -1304,7 +1317,7 @@
         { rol: 'otro', nombre: 'Laurel roto', pct: 0.05 }
       ],
       procesos: [
-        'Salar y curar la panceta 5–7 días en frío.',
+        'Salar y curar la panceta en bolsa al vacío, en heladera (2–4 °C), los días que indica «Curado en bolsa al vacío» (arriba). Darla vuelta una vez por día.',
         'Enjuagar y secar.',
         'Ahumar (opcional) y dejar estacionar.'
       ]
@@ -1473,6 +1486,13 @@
     var rendimiento = pesoMezclaKg > 0 ? pesoFinalKg / pesoMezclaKg * 100 : 0;
     var aw = clamp(0.97 - 0.002 * merma, 0.78, 0.97);
 
+    // Curado por equilibrio en bolsa al vacío, en heladera (2–4 °C). Se toma el MAYOR de dos tiempos y se suman 3 días de margen:
+    //  - regla práctica: 1 día cada 0,5 cm de espesor (más prudente que la de 1 día cada 1/4" + 2 días de los foros);
+    //  - difusión (ley de Fick): la sal y el nitrito tardan en llegar al centro en proporción al cuadrado del espesor.
+    //    t ≈ 0,3·L²/D con L = espesor/2 y D ≈ 3·10⁻¹⁰ m²/s (sal en carne fría) → ≈ 0,29·espesor² días (espesor en cm),
+    //    es decir ~90 % de la sal pareja en el centro. Pasa a mandar sobre la regla lineal desde ~7 cm.
+    var espesor = s.tipo === 'entero' ? clamp(num(s.espesor), 0, 30) : 0;
+    var diasBolsa = espesor > 0 ? Math.ceil(Math.max(espesor / 0.5, 0.29 * espesor * espesor) + 3) : 0;
     var calibre = num(s.calibre) || 40;
     var kgPorMetro = Math.PI * Math.pow(calibre / 20, 2) * 0.11;
     var metros = kgPorMetro > 0 ? pesoMezclaKg / kgPorMetro : 0;
@@ -1520,14 +1540,18 @@
     } else {
       var tipo = s.tipo;
       var haySal = ing.some(function (x) { return x.rol === 'sal'; });
-      if (!haySal) push('bad', tx('Falta la sal: sin sal no hay curado.'));
+      // En un cocido (no pasa por cámara) el % de sal es gusto de la receta: sin avisos de sal. Los de nitrito siguen.
+      var avisaSal = tipo !== 'cocido';
+      if (!haySal && avisaSal) push('bad', tx('Falta la sal: sin sal no hay curado.'));
       if (componentesPct > 0 && Math.abs(componentesPct - 100) > 0.01) {
         push('warn', tx('La composición suma {total} % (cárnicos {carnicos} %, tocino {tocino} %); debería ser 100 %.', { total: fmt(componentesPct, 2), carnicos: fmt(carnicosPct, 2), tocino: fmt(grasaPct, 2) }));
       }
       if (carnicosPct <= 0 && grasaPct > 0 && grasaPct < 100) {
         push('warn', tx('Falta carne en la base: el tocino no puede ser toda la composición.'));
       }
-      if (salPct < 2) {
+      if (!avisaSal) {
+        // sin aviso de sal
+      } else if (salPct < 2) {
         push('bad', tx('Sal total {pct} %: por debajo de 2 % el producto queda expuesto.', { pct: fmt(salPct, 2) }));
       } else if (salPct < 2.2) {
         push('warn', tx('Sal total {pct} %: justa para un curado largo.', { pct: fmt(salPct, 2) }));
@@ -1573,6 +1597,9 @@
     } else if (nitritoPpm > 150) {
       push('warn', tx('Nitrito {ppm} ppm: en el límite (150 ppm UE / 156 ppm EE. UU.).', { ppm: fmt(nitritoPpm, 0) }));
     }
+    if (s.tipo === 'entero' && espesor > 10) {
+      push('warn', tx('Pieza de {e} cm de espesor: el centro tarda mucho en recibir sal y nitrito. Respetá los días de curado en bolsa y revisá que el color quede parejo al cortar.', { e: fmt(espesor, 1) }));
+    }
     if (nitratoPpm > 300) {
       push('bad', tx('Nitrato {ppm} ppm: supera la referencia de 300 ppm.', { ppm: fmt(nitratoPpm, 0) }));
     }
@@ -1584,6 +1611,7 @@
 
     var tSal = esBrine
       ? (salPctAgua < 1.5 || salPctAgua > 26 ? 'bad' : (salPctAgua > 20 ? 'warn' : 'ok'))
+      : s.tipo === 'cocido' ? 'ok'
       : (salPct < 2 ? 'bad' : (salPct < 2.2 ? 'warn' : (salPct <= 3.2 ? 'ok' : (salPct <= 4 ? 'warn' : 'bad'))));
     var tNit = nitritoPpm === 0 ? 'warn' : (nitritoPpm <= 150 ? 'ok' : (nitritoPpm <= 156.5 ? 'warn' : 'bad'));
     var tNat = nitratoPpm <= 250 ? 'ok' : (nitratoPpm <= 300 ? 'warn' : 'bad');
@@ -1624,6 +1652,8 @@
       metros: metros,
       baume: baume,
       diasBrine: diasBrine,
+      espesor: espesor,
+      diasBolsa: diasBolsa,
       costoIngredientes: costoIngredientes,
       costoCura: costoCura,
       costoTripa: costoTripa,
@@ -2664,6 +2694,7 @@
     recetario: [],
     merma: 35,
     calibre: 40,
+    espesor: 0,
     curaTipo: 'cura2',
     curaPct: 0.25,
     ingredientes: [],
@@ -2775,6 +2806,7 @@
       kg: state.kg,
       merma: state.merma,
       calibre: state.calibre,
+      espesor: state.espesor,
       curaTipo: state.curaTipo,
       curaPct: state.curaPct,
       ingredientes: clone(state.ingredientes),
@@ -2797,6 +2829,7 @@
     state.kg = d.kg;
     state.merma = d.merma;
     state.calibre = d.calibre;
+    state.espesor = num(d.espesor);
     state.curaTipo = d.curaTipo;
     state.curaPct = d.curaPct;
     state.ingredientes = clone(d.ingredientes || []);
@@ -3261,6 +3294,7 @@
       kg: Math.max(0.001, num(d.kg)),
       merma: num(d.merma),
       calibre: d.calibre || 40,
+      espesor: num(d.espesor),
       curaTipo: d.curaTipo || 'ninguna',
       curaPct: num(d.curaPct),
       ingredientes: d.ingredientes || [],
@@ -5346,6 +5380,8 @@
         : tx('Peso total de la mezcla; los porcentajes se aplican a la base cárnica.');
     $('merma').value = state.merma;
     $('calibre').value = String(state.calibre);
+    $('espesor').value = state.espesor > 0 ? String(state.espesor) : '';
+    $('espesor-campo').hidden = state.tipo !== 'entero';
     $('brine-litros').value = state.brine.litros;
     $('brine-sal').value = state.brine.salPct;
 
@@ -5391,11 +5427,13 @@
       texto = '≈ ' + d;
       hint = tx('Estufado 48–72 h a 20–24 °C y después {d} días de secado.', { d: d });
     } else if (tipo === 'entero') {
-      var salazonDias = Math.round(Math.max(5, r.kg * 7));
+      var salazonDias = r.diasBolsa > 0 ? r.diasBolsa : Math.round(Math.max(5, r.kg * 7));
       var secadoDias = Math.round(clamp(r.merma * 1.2, 21, 70));
       var totalDias = salazonDias + secadoDias;
       texto = '≈ ' + totalDias;
-      hint = tx('≈{s} días de salazón + ≈{d} días de secado (merma {m} %).', { s: salazonDias, d: secadoDias, m: fmt(r.merma, 0) });
+      hint = r.diasBolsa > 0
+        ? tx('≈{s} días de curado en bolsa (espesor {e} cm) + ≈{d} días de secado (merma {m} %).', { s: salazonDias, e: fmt(r.espesor, 1), d: secadoDias, m: fmt(r.merma, 0) })
+        : tx('≈{s} días de salazón + ≈{d} días de secado (merma {m} %).', { s: salazonDias, d: secadoDias, m: fmt(r.merma, 0) });
     } else if (tipo === 'cocido') {
       texto = '—';
       hint = tx('Se cocina el mismo día; la merma es por cocción, no por secado.');
@@ -5437,7 +5475,7 @@
     }
 
     $('sal-label').textContent = esBrine ? tx('Sal sobre agua') : tx('Sal total');
-    $('sal-sub').textContent = esBrine ? tx('saturación ≈ 26 %') : tx('rango 2,2–3,2 %');
+    $('sal-sub').textContent = esBrine ? tx('saturación ≈ 26 %') : (state.tipo === 'cocido' ? tx('según la receta') : tx('rango 2,2–3,2 %'));
     $('val-sal').textContent = fmt(esBrine ? r.salPctAgua : r.salPct, 2) + ' %';
     $('tile-sal').dataset.tone = r.tonos.sal;
 
@@ -5447,6 +5485,11 @@
     $('tile-nitrato').dataset.tone = r.tonos.nitrato;
     $('val-azucar').textContent = fmt(r.azucarPct, 2) + ' %';
     $('tile-azucar').dataset.tone = r.tonos.azucar;
+
+    $('tile-bolsa').hidden = state.tipo !== 'entero';
+    $('espesor-campo').hidden = state.tipo !== 'entero';
+    $('val-bolsa').textContent = r.diasBolsa > 0 ? tx('{d} días', { d: r.diasBolsa }) : '—';
+    $('bolsa-sub').textContent = r.diasBolsa > 0 ? tx('espesor {e} cm · 2–4 °C', { e: fmt(r.espesor, 1) }) : tx('poné el espesor de la pieza');
 
     $('total-mezcla').textContent = esBrine
       ? tx('Salmuera: {kg} kg · {g} g de sal', { kg: fmt(r.baseKg, 2), g: gramos(r.salG) })
@@ -5578,6 +5621,7 @@
       kg: r.kg || 1,
       merma: r.merma,
       calibre: r.calibre || 40,
+      espesor: num(r.espesor),
       curaTipo: r.curaTipo || 'ninguna',
       curaPct: r.curaPct || 0,
       ingredientes: clone(r.ingredientes || []),
@@ -5618,6 +5662,7 @@
       kg: Math.max(0.05, num(d.kg) || 1),
       merma: clamp(num(d.merma), 0, 80),
       calibre: CALIBRES.indexOf(num(d.calibre)) >= 0 ? num(d.calibre) : 40,
+      espesor: clamp(num(d.espesor), 0, 30),
       curaTipo: CURAS[d.curaTipo] ? d.curaTipo : 'ninguna',
       curaPct: clamp(num(d.curaPct), 0, 5),
       ingredientes: (Array.isArray(d.ingredientes) ? d.ingredientes : []).map(function (ing) {
@@ -6173,6 +6218,11 @@
       guardarSesion();
     });
     $('tripa-item').addEventListener('change', function (e) { elegirTripa(e.target.value); });
+    $('espesor').addEventListener('input', function (e) {
+      state.espesor = clamp(num(e.target.value), 0, 30);
+      recalcular();
+      guardarSesion();
+    });
     $('calibre').addEventListener('change', function (e) {
       state.calibre = num(e.target.value);
       recalcular();
@@ -6522,6 +6572,9 @@
     "Total (cárnicos + grasa + aditivos)": "Total (meat + fat + additives)",
     "kg": "kg",
     "Peso total de la mezcla; los porcentajes se aplican a la base cárnica.": "Total weight of the mix; percentages apply to the meat base.",
+    "Espesor de la pieza (en su parte más gruesa)": "Thickness of the piece (at its thickest part)",
+    "cm": "cm",
+    "Curado por equilibrio en bolsa al vacío, en heladera (2–4 °C): 1 día cada 0,5 cm de espesor más 3 días de margen. Desde unos 7 cm el tiempo crece con el cuadrado del espesor (la sal y el nitrito avanzan despacio hacia el centro). Con poca sal o mucha grasa, más días.": "Equilibrium curing in a vacuum bag, in the fridge (2–4 °C): 1 day per 0.5 cm of thickness plus 3 days of margin. From about 7 cm up, the time grows with the square of the thickness (salt and nitrite move slowly toward the center). With low salt or a lot of fat, allow more days.",
     "Ingredientes": "Ingredients",
     "Ingrediente": "Ingredient",
     "% base": "% base",
@@ -6584,6 +6637,8 @@
     "límite 156 ppm": "limit 156 ppm",
     "Nitrato": "Nitrate",
     "referencia 300 ppm": "reference 300 ppm",
+    "Curado en bolsa al vacío": "Vacuum-bag curing",
+    "poné el espesor de la pieza": "enter the thickness of the piece",
     "hasta 2,5 %": "up to 2.5 %",
     "La sal total incluye la sal que aporta la cura: 87,5 % en la #2 y 93,75 % en la #1.": "Total salt includes the salt provided by the cure: 87.5 % in #2 and 93.75 % in #1.",
     "Calculadora orientativa. Los límites de nitrito (150–156 ppm) y nitrato (300 ppm) son referencias internacionales: verificá la normativa de tu país. No reemplaza asesoramiento profesional ni mediciones de pH y aw.": "Indicative calculator. The nitrite (150–156 ppm) and nitrate (300 ppm) limits are international references: check the regulations in your country. It does not replace professional advice or pH and aw measurements.",
@@ -6727,6 +6782,7 @@
     "Nombre de la receta": "Recipe name",
     "Notas de la receta": "Recipe notes",
     "Kilos totales de la mezcla": "Total kilos of the mix",
+    "Espesor de la pieza en centímetros": "Thickness of the piece in centimeters",
     "Nuevo ingrediente": "New ingredient",
     "Nombre del ingrediente": "Ingredient name",
     "Porcentaje": "Percentage",
@@ -6783,6 +6839,7 @@
     "En fermentados la sal protege mientras baja el pH: no bajes de 2,4 %.": "In fermented products the salt protects while the pH drops: do not go below 2.4 %.",
     "Nitrito {ppm} ppm: supera el límite habitual de 156 ppm.": "Nitrite {ppm} ppm: exceeds the usual limit of 156 ppm.",
     "Nitrito {ppm} ppm: en el límite (150 ppm UE / 156 ppm EE. UU.).": "Nitrite {ppm} ppm: at the limit (150 ppm EU / 156 ppm US).",
+    "Pieza de {e} cm de espesor: el centro tarda mucho en recibir sal y nitrito. Respetá los días de curado en bolsa y revisá que el color quede parejo al cortar.": "Piece {e} cm thick: the center takes a long time to receive salt and nitrite. Keep to the bag-curing days and check that the color is even when you cut it.",
     "Nitrato {ppm} ppm: supera la referencia de 300 ppm.": "Nitrate {ppm} ppm: exceeds the 300 ppm reference.",
     "Anula: {tipo} del {fecha}": "Voids: {tipo} of {fecha}",
     "Automático: {n}": "Automatic: {n}",
@@ -7048,6 +7105,7 @@
     "Peso de la carne a sumergir.": "Weight of the meat to submerge.",
     "Peso de la pieza cruda. Los aditivos se calculan sobre este peso y se suman: la mezcla total queda más pesada.": "Weight of the raw piece. Additives are calculated on this weight and added: the total mix ends up heavier.",
     "Estufado 48–72 h a 20–24 °C y después {d} días de secado.": "Fermentation 48–72 h at 20–24 °C and then {d} days of drying.",
+    "≈{s} días de curado en bolsa (espesor {e} cm) + ≈{d} días de secado (merma {m} %).": "≈{s} days of bag curing (thickness {e} cm) + ≈{d} days of drying (weight loss {m} %).",
     "≈{s} días de salazón + ≈{d} días de secado (merma {m} %).": "≈{s} days of salting + ≈{d} days of drying (weight loss {m} %).",
     "Se cocina el mismo día; la merma es por cocción, no por secado.": "Cooked the same day; the weight loss is from cooking, not drying.",
     "Sin secado en cámara: se cura con cura #1 (en salmuera o en la mezcla), se embute y se cocina para consumir.": "No drying in the chamber: cured with cure #1 (in brine or in the mix), stuffed and cooked to be eaten.",
@@ -7058,6 +7116,9 @@
     "sobre carne + agua": "on meat + water",
     "sobre la base": "on the base",
     "saturación ≈ 26 %": "saturation ≈ 26 %",
+    "según la receta": "per recipe",
+    "{d} días": "{d} days",
+    "espesor {e} cm · 2–4 °C": "thickness {e} cm · 2–4 °C",
     "Salmuera: {kg} kg · {g} g de sal": "Brine: {kg} kg · {g} g of salt",
     "Mezcla total: {m} kg · base cárnica: {b} kg · aditivos: {a} g": "Total mix: {m} kg · meat base: {b} kg · additives: {a} g",
     "Base cárnica: Cárnicos {c} % · Tocino {t} % · 100 % · mezcla total {m} kg (incluye aditivos).": "Meat base: Meat {c} % · Back fat {t} % · 100 % · total mix {m} kg (includes additives).",
@@ -7253,6 +7314,9 @@
     "Total (cárnicos + grasa + aditivos)": "Gesamt (Fleisch + Fett + Zusatzstoffe)",
     "kg": "kg",
     "Peso total de la mezcla; los porcentajes se aplican a la base cárnica.": "Gesamtgewicht der Masse; die Prozente beziehen sich auf die Fleischbasis.",
+    "Espesor de la pieza (en su parte más gruesa)": "Dicke des Stücks (an der dicksten Stelle)",
+    "cm": "cm",
+    "Curado por equilibrio en bolsa al vacío, en heladera (2–4 °C): 1 día cada 0,5 cm de espesor más 3 días de margen. Desde unos 7 cm el tiempo crece con el cuadrado del espesor (la sal y el nitrito avanzan despacio hacia el centro). Con poca sal o mucha grasa, más días.": "Gleichgewichtspökeln im Vakuumbeutel, im Kühlschrank (2–4 °C): 1 Tag pro 0,5 cm Dicke plus 3 Tage Reserve. Ab etwa 7 cm wächst die Zeit mit dem Quadrat der Dicke (Salz und Nitrit wandern langsam zur Mitte). Bei wenig Salz oder viel Fett mehr Tage einplanen.",
     "Ingredientes": "Zutaten",
     "Ingrediente": "Zutat",
     "% base": "% Basis",
@@ -7315,6 +7379,8 @@
     "límite 156 ppm": "Grenzwert 156 ppm",
     "Nitrato": "Nitrat",
     "referencia 300 ppm": "Richtwert 300 ppm",
+    "Curado en bolsa al vacío": "Pökeln im Vakuumbeutel",
+    "poné el espesor de la pieza": "gib die Dicke des Stücks ein",
     "hasta 2,5 %": "bis 2,5 %",
     "La sal total incluye la sal que aporta la cura: 87,5 % en la #2 y 93,75 % en la #1.": "Das Gesamtsalz enthält das Salz aus dem Cure: 87,5 % bei #2 und 93,75 % bei #1.",
     "Calculadora orientativa. Los límites de nitrito (150–156 ppm) y nitrato (300 ppm) son referencias internacionales: verificá la normativa de tu país. No reemplaza asesoramiento profesional ni mediciones de pH y aw.": "Richtwert-Rechner. Die Grenzen für Nitrit (150–156 ppm) und Nitrat (300 ppm) sind internationale Richtwerte: Prüfe die Vorschriften deines Landes. Ersetzt keine fachliche Beratung und keine pH- und aw-Messungen.",
@@ -7458,6 +7524,7 @@
     "Nombre de la receta": "Name des Rezepts",
     "Notas de la receta": "Notizen zum Rezept",
     "Kilos totales de la mezcla": "Gesamtkilos der Masse",
+    "Espesor de la pieza en centímetros": "Dicke des Stücks in Zentimetern",
     "Nuevo ingrediente": "Neue Zutat",
     "Nombre del ingrediente": "Name der Zutat",
     "Porcentaje": "Prozent",
@@ -7514,6 +7581,7 @@
     "En fermentados la sal protege mientras baja el pH: no bajes de 2,4 %.": "Bei Rohwurst schützt das Salz, während der pH sinkt: nicht unter 2,4 % gehen.",
     "Nitrito {ppm} ppm: supera el límite habitual de 156 ppm.": "Nitrit {ppm} ppm: überschreitet den üblichen Grenzwert von 156 ppm.",
     "Nitrito {ppm} ppm: en el límite (150 ppm UE / 156 ppm EE. UU.).": "Nitrit {ppm} ppm: am Grenzwert (150 ppm EU / 156 ppm USA).",
+    "Pieza de {e} cm de espesor: el centro tarda mucho en recibir sal y nitrito. Respetá los días de curado en bolsa y revisá que el color quede parejo al cortar.": "Stück mit {e} cm Dicke: Die Mitte braucht lange, bis Salz und Nitrit ankommen. Halte die Pökeltage im Beutel ein und prüfe beim Aufschneiden, ob die Farbe gleichmäßig ist.",
     "Nitrato {ppm} ppm: supera la referencia de 300 ppm.": "Nitrat {ppm} ppm: überschreitet den Richtwert von 300 ppm.",
     "Anula: {tipo} del {fecha}": "Storniert: {tipo} vom {fecha}",
     "Automático: {n}": "Automatisch: {n}",
@@ -7779,6 +7847,7 @@
     "Peso de la carne a sumergir.": "Gewicht des Fleischs zum Einlegen.",
     "Peso de la pieza cruda. Los aditivos se calculan sobre este peso y se suman: la mezcla total queda más pesada.": "Gewicht des rohen Stücks. Die Zusatzstoffe werden auf dieses Gewicht berechnet und dazugerechnet: Die Gesamtmasse wird schwerer.",
     "Estufado 48–72 h a 20–24 °C y después {d} días de secado.": "Reifung (warm) 48–72 h bei 20–24 °C, danach {d} Tage Trocknung.",
+    "≈{s} días de curado en bolsa (espesor {e} cm) + ≈{d} días de secado (merma {m} %).": "≈{s} Tage Pökeln im Beutel (Dicke {e} cm) + ≈{d} Tage Trocknung (Gewichtsverlust {m} %).",
     "≈{s} días de salazón + ≈{d} días de secado (merma {m} %).": "≈{s} Tage Pökeln + ≈{d} Tage Trocknung (Gewichtsverlust {m} %).",
     "Se cocina el mismo día; la merma es por cocción, no por secado.": "Wird am selben Tag gegart; der Gewichtsverlust kommt vom Garen, nicht vom Trocknen.",
     "Sin secado en cámara: se cura con cura #1 (en salmuera o en la mezcla), se embute y se cocina para consumir.": "Ohne Kammertrocknung: Es wird mit Cure #1 gepökelt (in der Lake oder in der Masse), gefüllt und zum Verzehr gegart.",
@@ -7789,6 +7858,9 @@
     "sobre carne + agua": "auf Fleisch + Wasser",
     "sobre la base": "auf die Basis",
     "saturación ≈ 26 %": "Sättigung ≈ 26 %",
+    "según la receta": "laut Rezept",
+    "{d} días": "{d} Tage",
+    "espesor {e} cm · 2–4 °C": "Dicke {e} cm · 2–4 °C",
     "Salmuera: {kg} kg · {g} g de sal": "Lake: {kg} kg · {g} g Salz",
     "Mezcla total: {m} kg · base cárnica: {b} kg · aditivos: {a} g": "Gesamtmasse: {m} kg · Fleischbasis: {b} kg · Zusatzstoffe: {a} g",
     "Base cárnica: Cárnicos {c} % · Tocino {t} % · 100 % · mezcla total {m} kg (incluye aditivos).": "Fleischbasis: Fleisch {c} % · Rückenspeck {t} % · 100 % · Gesamtmasse {m} kg (inkl. Zusatzstoffe).",
