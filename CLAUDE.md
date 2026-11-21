@@ -12,9 +12,9 @@ para no publicar el historial viejo. El historial anterior (con releases 1.4–1
 - Identidad pública: **ForzaDos** (`ForzaDos <ForzaDos@users.noreply.github.com>`). Nunca apellido ni correo real.
   Commits sin `Co-Authored-By`. Responder en castellano rioplatense.
 - **La clave `charcuteria.jks` nunca va al repo** (`.gitignore` la cubre). El original está en
-  `D:\User\Documentos\deepseek-harness\default-workspace\charcuteria-android\charcuteria.jks` (huella SHA-256 `f9b36323…6b46d0f9`).
+  una ruta local que se pasa con la variable de entorno `CHARCUTERIA_KEYSTORE` (huella SHA-256 `f9b36323…6b46d0f9`).
   Si se firma con otra clave, el teléfono no deja actualizar encima y desinstalar **borra los datos**.
-- No modificar la carpeta de DeepSeek (`D:\User\Documentos\deepseek-harness\...`).
+- No modificar la carpeta del harness de DeepSeek (está fuera del repo; la ruta no se escribe acá).
 - Versión en 4 lugares de `app/index.html` (`<title>`, `#app-version`, `#about-version`, `APP_VERSION`) y en
   `android/AndroidManifest.xml` (`versionCode`/`versionName`). Si el usuario pide no cambiar la versión, se recompila con la misma.
 
@@ -29,8 +29,9 @@ para no publicar el historial viejo. El historial anterior (con releases 1.4–1
 
 ## Compilar el APK
 - `android\compilar-con-clave.ps1`: copia la clave original, corre `android\build.ps1` y la borra al terminar.
+  Necesita las variables de entorno `CHARCUTERIA_KEYSTORE` (ruta del `.jks` original) y `CHARCUTERIA_TOOLS` (ver abajo); sin ellas falla con un mensaje claro. Las rutas reales de esta PC están en la memoria privada de Claude, no en el repo.
   `build.ps1` genera una clave NUEVA si falta `android\charcuteria.jks`: usar siempre el wrapper.
-- Las herramientas de `D:\...\deepseek-harness\default-workspace\tools` (aapt2, zipalign, javac) **no pueden escribir archivos**
+- Las herramientas del harness de DeepSeek (aapt2, zipalign, javac) **no pueden escribir archivos**
   cuando las lanza Claude desde ahí ("Datos no válidos (13)"). Copiarlas (build-tools 34, `platforms/android-34/android.jar`, `jdk17`)
   a una carpeta temporal y pasar `CHARCUTERIA_TOOLS=<esa carpeta>`; correr con el sandbox desactivado.
 - Verificar después: `apksigner verify --print-certs dist\Charcuteria.apk` → huella `f9b36323…`; `assets/index.html` con el

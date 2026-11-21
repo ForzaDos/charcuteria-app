@@ -39,7 +39,7 @@ if ($NoInstalar) {
 $dispositivos = @(adb devices | Where-Object { $_ -match '\sdevice\s*$' })
 if ($dispositivos.Count -eq 0) {
     Write-Output 'No hay telefono conectado por USB.'
-    Write-Output 'Actualizala desde Chrome: http://192.168.18.14:8099/Charcuteria.apk'
+    Write-Output 'Actualizala desde Chrome: http://<IP-de-tu-PC>:8099/Charcuteria.apk'
     return
 }
 
@@ -52,5 +52,5 @@ if ($salida -match 'Success') {
     Write-Output ('Instalada ' + $nuevoName + ' y abierta en el telefono.')
 } else {
     Write-Output 'ADB no pudo instalar (bloqueo de MIUI). Actualizala desde Chrome:'
-    Write-Output 'http://192.168.18.14:8099/Charcuteria.apk'
+    Write-Output 'http://<IP-de-tu-PC>:8099/Charcuteria.apk'
 }

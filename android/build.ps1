@@ -1,7 +1,9 @@
 $ErrorActionPreference = 'Stop'
 
 $root = $PSScriptRoot
-$tools = if ($env:CHARCUTERIA_TOOLS) { $env:CHARCUTERIA_TOOLS } else { 'D:\User\Documentos\deepseek-harness\default-workspace\tools' }
+# Carpeta con android-sdk (build-tools 34.0.0 y platforms\android-34) y jdk17. Se indica con la variable de entorno CHARCUTERIA_TOOLS.
+if (-not $env:CHARCUTERIA_TOOLS) { throw 'Definí CHARCUTERIA_TOOLS: carpeta que contiene android-sdk y jdk17' }
+$tools = $env:CHARCUTERIA_TOOLS
 $sdk = Join-Path $tools 'android-sdk'
 $jdk = Join-Path $tools 'jdk17'
 $bt = Join-Path $sdk 'build-tools\34.0.0'
