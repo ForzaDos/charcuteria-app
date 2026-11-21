@@ -831,6 +831,14 @@ console.log('\n== Cocido: sal libre · Entero: días en bolsa ==');
   ok(nit.alertas.some((a) => a.tone === 'bad' && /Nitrito/.test(a.texto)), 'cocido: el aviso de nitrito alto sigue');
   const mal = T.compute(T.estadoDeData(Object.assign({}, T.RECETAS[idCoc], { curaTipo: 'cura2' })));
   ok(mal.alertas.some((a) => a.tone === 'bad' && /nitrosaminas/.test(a.texto)), 'cocido: cura #2 sigue en rojo (nitrosaminas)');
+  // Embutido fresco (tampoco va a cámara): misma regla que el cocido, con la cura #1 y sus avisos de nitrito.
+  const fre = (pct, extra) => T.compute(T.estadoDeData(Object.assign(JSON.parse(JSON.stringify(T.RECETAS[idCoc])), { tipo: 'fresco' }, extra || {}, {
+    ingredientes: T.RECETAS[idCoc].ingredientes.map((x) => (x.rol === 'sal' ? Object.assign({}, x, { pct }) : x))
+  })));
+  ok(!fre(0.5).alertas.some(esAvisoSal) && !fre(5).alertas.some(esAvisoSal) && fre(0.5).tonos.sal === 'ok', 'embutido fresco: sin avisos de sal, ni baja ni alta');
+  ok(fre(2, { curaTipo: 'cura2' }).alertas.some((a) => a.tone === 'bad' && /nitrosaminas/.test(a.texto)), 'embutido fresco: cura #2 sigue en rojo (nitrosaminas)');
+  ok(fre(2, { curaTipo: 'cura1', curaPct: 3 }).alertas.some((a) => a.tone === 'bad' && /Nitrito/.test(a.texto)), 'embutido fresco: el aviso de nitrito alto sigue');
+  ok(fre(2, { curaTipo: 'ninguna' }).alertas.some((a) => /botulismo/.test(a.texto)), 'embutido fresco: sin cura sigue avisando botulismo');
   // Los demás tipos conservan los avisos de sal.
   const sal = T.compute(T.estadoDeData(Object.assign({}, T.RECETAS.salame, { ingredientes: T.RECETAS.salame.ingredientes.map((x) => (x.rol === 'sal' ? Object.assign({}, x, { pct: 0.5 }) : x)) })));
   ok(sal.alertas.some((a) => a.tone === 'bad' && /Sal total/.test(a.texto)), 'fermentado: la sal baja sigue en rojo');

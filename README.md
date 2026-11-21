@@ -5,7 +5,7 @@
 Pensada para quien hace salames, bondiolas, pancetas, leberwurst o salmueras en su casa: pesás la carne, la app calcula la sal, la sal de cura, los aditivos y las especias, te avisa si algo es peligroso, lleva la cuenta de lo que tenés en el stock y te arma la receta en PDF para tenerla a mano en la mesada.
 
 [![Licencia MIT](https://img.shields.io/badge/licencia-MIT-c75b45)](LICENSE)
-![Android y web](https://img.shields.io/badge/Android%20%2B%20web-1.2.0-e2955c)
+![Android y web](https://img.shields.io/badge/Android%20%2B%20web-1.2.2-e2955c)
 ![Offline](https://img.shields.io/badge/sin%20internet-sin%20cuentas-8e3f30)
 
 <table>

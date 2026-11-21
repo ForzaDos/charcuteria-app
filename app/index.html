@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Charcutería">
-<title>Charcutería 1.2.0</title>
+<title>Charcutería 1.2.2</title>
 <style>
   :root{
     --bg:#120e0d;
@@ -498,7 +498,7 @@
       <circle cx="24" cy="23" r="1.2" fill="#f7e7d8" opacity=".65"/>
     </svg>
     <div>
-      <h1>Charcutería <span class="app-version" id="app-version">1.2.0</span></h1>
+      <h1>Charcutería <span class="app-version" id="app-version">1.2.2</span></h1>
       <p>curado seco · fermentados · cocidos</p>
     </div>
     <select class="idioma-sel" id="idioma" aria-label="Idioma">
@@ -1008,7 +1008,7 @@
     </div>
     <div class="datos-bloque">
       <h3>Acerca de</h3>
-      <p class="about-title">Charcutería <strong id="about-version">1.2.0</strong></p>
+      <p class="about-title">Charcutería <strong id="about-version">1.2.2</strong></p>
       <p class="hint">Autor: <strong>ForzaDos</strong> · calculadora offline: los datos se guardan solo en este dispositivo.</p>
     </div>
   </div>
@@ -1231,7 +1231,7 @@
 (function () {
   'use strict';
 
-  var APP_VERSION = '1.2.0';
+  var APP_VERSION = '1.2.2';
   var APP_AUTOR = 'ForzaDos';
 
   /* ===== CALC-INICIO ===== */
@@ -1540,8 +1540,8 @@
     } else {
       var tipo = s.tipo;
       var haySal = ing.some(function (x) { return x.rol === 'sal'; });
-      // En un cocido (no pasa por cámara) el % de sal es gusto de la receta: sin avisos de sal. Los de nitrito siguen.
-      var avisaSal = tipo !== 'cocido';
+      // En un cocido o un fresco (no pasan por cámara) el % de sal es gusto de la receta: sin avisos de sal. Los de nitrito siguen.
+      var avisaSal = tipo !== 'cocido' && tipo !== 'fresco';
       if (!haySal && avisaSal) push('bad', tx('Falta la sal: sin sal no hay curado.'));
       if (componentesPct > 0 && Math.abs(componentesPct - 100) > 0.01) {
         push('warn', tx('La composición suma {total} % (cárnicos {carnicos} %, tocino {tocino} %); debería ser 100 %.', { total: fmt(componentesPct, 2), carnicos: fmt(carnicosPct, 2), tocino: fmt(grasaPct, 2) }));
@@ -1611,7 +1611,7 @@
 
     var tSal = esBrine
       ? (salPctAgua < 1.5 || salPctAgua > 26 ? 'bad' : (salPctAgua > 20 ? 'warn' : 'ok'))
-      : s.tipo === 'cocido' ? 'ok'
+      : (s.tipo === 'cocido' || s.tipo === 'fresco') ? 'ok'
       : (salPct < 2 ? 'bad' : (salPct < 2.2 ? 'warn' : (salPct <= 3.2 ? 'ok' : (salPct <= 4 ? 'warn' : 'bad'))));
     var tNit = nitritoPpm === 0 ? 'warn' : (nitritoPpm <= 150 ? 'ok' : (nitritoPpm <= 156.5 ? 'warn' : 'bad'));
     var tNat = nitratoPpm <= 250 ? 'ok' : (nitratoPpm <= 300 ? 'warn' : 'bad');
@@ -5475,7 +5475,7 @@
     }
 
     $('sal-label').textContent = esBrine ? tx('Sal sobre agua') : tx('Sal total');
-    $('sal-sub').textContent = esBrine ? tx('saturación ≈ 26 %') : (state.tipo === 'cocido' ? tx('según la receta') : tx('rango 2,2–3,2 %'));
+    $('sal-sub').textContent = esBrine ? tx('saturación ≈ 26 %') : ((state.tipo === 'cocido' || state.tipo === 'fresco') ? tx('según la receta') : tx('rango 2,2–3,2 %'));
     $('val-sal').textContent = fmt(esBrine ? r.salPctAgua : r.salPct, 2) + ' %';
     $('tile-sal').dataset.tone = r.tonos.sal;
 
